@@ -1,9 +1,7 @@
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.regex.Pattern;
-import java.util.List;
 import java.time.LocalDate;
 
 class Transaction {
@@ -23,8 +21,7 @@ class Transaction {
 
     @Override
     public String toString() {
-        return String.format("Date: %s  Description: %-20s  Debit: $%.2f  Credit: $%.2f  Balance: $%.2f",
-                date, description, debit, credit, balance);
+        return String.format("%s|%s|%.2f|%.2f|%.2f", date, description, debit, credit, balance);
     }
 }
 
@@ -89,7 +86,7 @@ public class Main {
             dashboard (input, email);
         } else {
             System.out.println("Invalid email or password. If you don't have an account, you should register first.");
-            System.out.print("Would you like to register? (Y/N)");
+            System.out.print("Would you like to register? (Y/N) ");
             String choice = input.nextLine().toLowerCase();
 
             if (choice.equals("y")) {
@@ -171,8 +168,7 @@ public class Main {
                     credit(input);
                     break;
                 case 3:
-                    history(input);
-                    accountBalance();
+                    displayHistory();
                     break;
                 case 4:
                     activeSavings(input);
@@ -192,7 +188,6 @@ public class Main {
         }
     }
 
-
     private static void debit(Scanner input) {
         System.out.println("== Debit ==");
         System.out.print("Enter amount: ");
@@ -201,8 +196,12 @@ public class Main {
         System.out.print("Enter description: ");
         String description = input.nextLine();
 
-        if (amount <= 0 || amount > TRANSACTION_LIMIT) {
-            System.out.println("Invalid amount. Must be positive and not exceed $" + TRANSACTION_LIMIT);
+        if (amount <= 0) {
+            System.out.println("Invalid amount. Amount must be positive." + TRANSACTION_LIMIT);
+            return;
+        }
+        if (amount > TRANSACTION_LIMIT) {
+            System.out.println("Invalid amount. Amount must not exceed $" + TRANSACTION_LIMIT);
             return;
         }
 
@@ -268,87 +267,23 @@ public class Main {
         String response = input.nextLine().toUpperCase();
 
         if (response.equals("Y")) {
-            System.out.print("Enter the percentage you wish to debut from the next debit: ");
+            System.out.print("Enter the percentage you wish to debut from the next debit (%): ");
             savingsPercentage = input.nextDouble();
             input.nextLine();
             System.out.println("Savings Activated!\n");
         }
     }
 
-    private static void accountBalance() {
-        LocalDate currentMonth = LocalDate.now().withDayOfMonth(1);
-        double monthlyBalance = 0;
-
-        for (Transaction t : transactions) {
-            if (!t.date.isBefore(currentMonth)) {
-                monthlyBalance += (t.debit - t.credit);
-            }
-        }
-
-        System.out.printf("Current Monthly Balance: $%.2f\n", monthlyBalance);
-    }
-
-    private static void history(Scanner input) {
+    private static void displayHistory() {
         System.out.println("== Transaction History ==");
-    }
-
-
-    private static void depositInterestPredictor(Scanner input) {
-        System.out.println("\n== Interest Calculator ==");
-
-        // Prompt for bank and interest rate
-        System.out.print("Select bank (RHB/MayBank/HongLeong/Alliance/AmBank/StandardChartered): ");
-        String bank = input.nextLine().toLowerCase();
-
-        double interestRate;
-        switch (bank) {
-            case "rhb":
-                interestRate = 2.6;
-                break;
-            case "maybank":
-                interestRate = 2.5;
-                break;
-            case "hongleong":
-                interestRate = 2.3;
-                break;
-            case "alliance":
-                interestRate = 2.85;
-                break;
-            case "ambank":
-                interestRate = 2.55;
-                break;
-            case "standardchartered":
-                interestRate = 2.65;
-                break;
-            default:
-                System.out.println("Invalid bank. Using default rate of 2.5%.");
-                interestRate = 2.5;
+        System.out.printf("%-15s %-30s %-15s %-15s %s\n", "Date", "Description", "Debit", "Credit", "Balance");
+        System.out.println("-----------------------------------------------------------------------------------------");
+        for (Transaction t : transactions) {
+            String[] details = t.toString().split("\\|");
+            System.out.printf("%-15s %-30s $%-14.2f $%-14.2f $%.2f\n",
+                    details[0], details[1], Double.parseDouble(details[2]), Double.parseDouble(details[3]), Double.parseDouble(details[4]));
         }
-
-        System.out.print("Calculate interest for (daily/monthly/annually): ");
-        String period = input.nextLine().toLowerCase();
-
-
-        System.out.print("Enter duration (number of periods): ");
-        int duration = input.nextInt();
-        input.nextLine();
-
-        double rate = interestRate / 100;
-        double totalInterest;
-
-        switch (period) {
-            case "daily" -> totalInterest = (balance * rate / 365) * duration;
-            case "monthly" -> totalInterest = (balance * rate / 12) * duration;
-            case "annually" -> totalInterest = (balance * rate) * duration;
-            default -> {
-                System.out.println("Invalid period. Calculating monthly by default.");
-                totalInterest = (balance * rate / 12) * duration;
-            }
-        }
-
-        System.out.printf("Estimated Interest over %d %s: $%.2f\n", duration, period, totalInterest);
     }
-
 
     private static void creditLoan(Scanner input) {
         System.out.println("\n== Credit Loan ==");
@@ -420,5 +355,60 @@ public class Main {
         if (loan <= 0) {
             System.out.println("Loan fully repaid. Debit and credit unblocked.");
         }
+    }
+
+    private static void depositInterestPredictor(Scanner input) {
+        System.out.println("\n== Interest Calculator ==");
+
+        // Prompt for bank and interest rate
+        System.out.print("Select bank (RHB/MayBank/HongLeong/Alliance/AmBank/StandardChartered): ");
+        String bank = input.nextLine().toLowerCase();
+
+        double interestRate;
+        switch (bank) {
+            case "rhb":
+                interestRate = 2.6;
+                break;
+            case "maybank":
+                interestRate = 2.5;
+                break;
+            case "hongleong":
+                interestRate = 2.3;
+                break;
+            case "alliance":
+                interestRate = 2.85;
+                break;
+            case "ambank":
+                interestRate = 2.55;
+                break;
+            case "standardchartered":
+                interestRate = 2.65;
+                break;
+            default:
+                System.out.println("Invalid bank selection. Using default rate of 2.5%.");
+                interestRate = 2.5;
+        }
+
+        System.out.print("Calculate interest for (day/month/annual): ");
+        String period = input.nextLine().toLowerCase();
+
+
+        System.out.printf("Enter the number of %s to calculate interest for: ", period);
+        int duration = input.nextInt();
+        input.nextLine();
+
+        double rate = interestRate / 100;
+        double totalInterest;
+
+        switch (period) {
+            case "daily" -> totalInterest = (balance * rate / 365) * duration;
+            case "monthly" -> totalInterest = (balance * rate / 12) * duration;
+            case "annually" -> totalInterest = (balance * rate) * duration;
+            default -> {
+                System.out.println("Invalid period. Calculating monthly by default.");
+                totalInterest = (balance * rate / 12) * duration;
+            }
+        }
+        System.out.printf("Estimated Interest over %d %s: $%.2f\n", duration, period, totalInterest);
     }
 }
