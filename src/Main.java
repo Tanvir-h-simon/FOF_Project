@@ -39,7 +39,6 @@ public class Main {
     static LocalDate lastTransferDate = LocalDate.now();
     static int loanTerm = 0;
 
-
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
@@ -251,7 +250,6 @@ public class Main {
         transferSavings();
         System.out.println("Credit Successfully Recorded.\n");
     }
-
 
     private static void transferSavings() {
         if (LocalDate.now().getMonth() != lastTransferDate.getMonth()) {
